@@ -6,13 +6,13 @@ Built for [Perspective](https://www.perspective.co), the AI funnel platform.
 
 ## What it does
 
-1. **Pick the analysis mode** based on real traffic: change-detection (what changed in the last 7 days vs. the 7 before), structural audit (where does this funnel leak by design), or dormant-funnel (traffic has collapsed, so that is the headline).
-2. **Pull the data** per funnel: sessions, leads, conversion rate, step-by-step drop-off, mobile vs. desktop split, UTM sources, and, when connected, ad spend and CRM outcomes.
-3. **Read the actual funnel copy** by walking the live pages in the browser, because the metrics tell you where people drop and only the real pages tell you why.
-4. **Locate the leak** down a fixed ladder: traffic, ad-to-funnel gap, step, device, then lead quality, stopping at the level that explains most of the loss.
-5. **Check lead quality, not just volume**: which answer segments actually move forward, where the CRM status ceiling is, whether the qualification questions filter anyone, and how the email sequences nurture or lose leads.
+1. **Pick the analysis mode** based on real traffic: change-detection (what changed in the last 7 days vs. the 7 before), structural audit (where does this funnel leak by design), or dormant-funnel (traffic has collapsed, so that is the headline). When the prompt leaves the mode ambiguous, it asks — as a simple multiple-choice question, like every question the skill asks that has only a few likely answers.
+2. **Pull the data** per funnel: sessions, leads, conversion rate, step-by-step drop-off, time on page per step, A/B variant split, mobile vs. desktop split, UTM sources, and, when connected, ad spend and CRM outcomes.
+3. **Read the actual funnel copy** by walking the live pages in the browser, because the metrics tell you where people drop and only the real pages tell you why. On classic (non-AI) funnels it asks for the live funnel link right away, since the copy isn't reachable through the API there.
+4. **Locate the leak** down a fixed ladder: traffic, ad-to-funnel gap, step, device, then lead quality, stopping at the level that explains most of the loss. Dwell time tells it what kind of leak a step has: a big drop after seconds is a message problem, a big drop after a long read is an offer objection — same drop, opposite fixes.
+5. **Check lead quality, not just volume**: which answer segments actually move forward, where the CRM status ceiling is (and whether a connected CRM can answer what Perspective's statuses can't), whether the qualification questions filter anyone, and how the email sequences nurture or lose leads.
 6. **Rank every leak by impact** in leads lost per month, highest first.
-7. **Report and offer the fix**, with a consistent structure so repeat runs stay comparable, and offer to ship the top fix directly (never touching a live funnel without explicit confirmation).
+7. **Report and offer the fix**: the ranked leaks with evidence, then a standalone fix table (Fix / Why / Impact / Effort) you can screenshot and hand to your team, and an offer to ship the top fix directly (never touching a live funnel without explicit confirmation).
 
 ## Requirements
 
@@ -27,7 +27,7 @@ The diagnosis runs with whatever is connected and states in one line what each m
 
 1. Download **`funnel-leak-finder.skill`** from this repo.
 2. In Claude (Cowork / desktop), open it and click **Save skill**, or add it under **Settings, Capabilities**.
-3. Make sure the Perspective MCP is active, then ask something like *"why did my CPL jump?"* or *"audit my funnel."*
+3. Make sure the Perspective MCP is active, then ask something like *"Our CPL jumped over the weekend. Find out why."*, *"Find me the biggest funnel leaks and give me improvement suggestions"*, or *"Give me funnel feedback."*
 
 You can also install from source by copying `SKILL.md` into your skills directory.
 
