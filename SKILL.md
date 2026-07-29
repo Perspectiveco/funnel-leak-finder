@@ -1,6 +1,6 @@
 ---
 name: funnel-leak-finder
-description: "Diagnose where a Perspective funnel is losing leads and rank every leak by impact, including whether the leads it delivers actually turn into customers. Use this skill whenever the user asks why their CPL went up, why lead volume dropped, where their funnel is leaking, why performance changed, or wants any performance review or audit of one or more funnels. Also trigger on: 'my CPL jumped', 'leads got more expensive', 'funnel isn't converting', 'where are we losing people', 'funnel feedback', 'audit my funnel', 'the leads are bad', 'lots of leads but nobody buys', or when the user shares a screenshot of worrying funnel or ad numbers. Requires the Perspective MCP connection."
+description: "Diagnose where a Perspective funnel is losing leads and rank every leak by impact, including whether the leads it delivers actually turn into customers. Use this skill whenever the user asks why their CPL went up, why lead volume dropped, where their funnel is leaking, why performance changed, or wants any performance review, feedback, or audit of one or more funnels. Trigger on prompts like: 'Our CPL jumped over the weekend. Find out why.', 'Find me the biggest funnel leaks and give me improvement suggestions', 'Give me funnel feedback', 'my CPL jumped', 'leads got more expensive', 'funnel isn't converting', 'where are we losing people', 'audit my funnel', 'the leads are bad', 'lots of leads but nobody buys', or when the user shares a screenshot of worrying funnel or ad numbers. Requires the Perspective MCP connection."
 ---
 
 # Funnel Leak Finder
@@ -38,8 +38,11 @@ The user should see a real insight before they answer a single question. Every q
 - **A connection is missing that a core check needs** — no ad platform (can't judge ad-to-funnel fit or CPL), no CRM with real outcomes (can't judge lead quality), no live funnel URL (can't judge copy). Name what's missing, what it would unlock, and ask once whether they can connect it or provide it.
 - **Context only the user has would change the ranking** — e.g. "did anything change around [date the metric moved]? New creative, budget shift, price change, offer sold out?" A one-line answer from the user often replaces an hour of guessing.
 - **The business goal is ambiguous** — a funnel optimized for volume looks different from one optimized for qualified leads. If the leaks trade off against each other, ask which the user actually wants before recommending.
+- **The analysis mode is ambiguous** — if the user's prompt doesn't make clear whether they want to know *what changed* (before/after comparison) or *where the funnel structurally leaks* (general audit), ask before committing to a mode. A "CPL jumped" prompt is clearly change-detection; "give me funnel feedback" is clearly structural; anything in between, ask.
 
-Never ask about things the data already answers, never ask more than needed for the next step, and never block the whole diagnosis on an unanswered question: deliver what you can, mark what's pending.
+**How to ask:** whenever a question has a small set of likely answers, offer them as multiple choice (use the AskUserQuestion tool when it's available, otherwise list 2-4 lettered options in chat) so the user can answer with one tap instead of composing a reply. Example for the mode question: (a) "Compare against last week — something changed" (b) "General audit — find all leaks" . Free-text questions are for things only the user knows, like "did anything change around [date]?".
+
+Never ask about things the data already answers, never ask more than needed for the next step, and never block the whole diagnosis on an unanswered question: keep pulling the data that's useful under every answer while the question is open, deliver what you can, mark what's pending.
 
 ## The diagnosis
 
@@ -58,7 +61,9 @@ State which mode you're in and why, in one sentence, so the user understands why
 For the chosen window (and the comparison window in change-detection mode), per funnel:
 - Sessions, leads, overall conversion rate
 - Step-by-step drop-off through the funnel
-- Device split (mobile vs. desktop) — on a mobile-heavy funnel (often 80%+), every leak is effectively a mobile leak, so weight fixes accordingly
+- Device split (mobile vs. desktop) — on a mobile-heavy funnel (often 80%+), every leak is effectively a mobile leak, so weight fixes accordingly. Note: the device chart is funnel-level, not per-step, so you can't show which step leaks mobile-only — instead, use the funnel-wide device share to weight every finding, and do the copy walkthrough on a mobile viewport since that's what most visitors see
+- Time on page per step (`chart_time_on_page`) — this is often the single most diagnostic number, because it tells you *what kind* of leak a step has. A high-drop step with **seconds** of dwell time (5-15s) is a message problem: people decided from the first screen and left without reading — fix the above-the-fold, the headline, the ad-to-page match. A high-drop step with **substantial** dwell time (45s+) is an objection problem: people genuinely engaged and then declined — fix the offer, the price framing, the risk reversal. Same drop-off percentage, opposite fixes. Always pair every big drop with its dwell time before proposing a fix
+- A/B test split — if the funnel has page variants, pull `chart_page_to_page_conversion_rate` once with `abTest: "original"` and once with `abTest: "variant"` and compare the first-step continue rates. A variant that clearly outperforms while receiving a minority of traffic is frequently the single biggest lever in the whole diagnosis ("ship the winner" costs minutes and needs no new copy). Caveat: the per-variant rates and the blended funnel numbers may not reconcile arithmetically — treat the *direction* as reliable and the exact rates as approximate, tell the user so, and have them confirm the split in the Perspective UI before declaring a winner
 - Traffic sources: check whether contacts actually carry UTM parameters. If they do, break the diagnosis down by source/campaign. If they're missing, note it and recommend adding UTM tagging — without it, source-level diagnosis is impossible. (Note: a funnel-level UTM *chart* may fail to load even when UTMs are present on contacts; confirm against the CRM contacts before concluding "no UTMs".)
 
 If ads are connected: spend, CPM, CTR, CPL per campaign feeding this funnel.
@@ -69,9 +74,9 @@ If CRM data is available: lead outcomes plus what those leads answered in the fu
 How to get at the copy depends on the funnel type:
 
 - **AI-generated funnels** (built with Perspective's AI funnel builder): easier — they have an AI conversation behind them, and their structure and content are more accessible through the API. Use what the API gives you, and still verify the live rendering in the browser.
-- **Classic / manually built funnels**: the MCP only shows step *names*, the *question text* of question steps, and the email-sequence skeleton — NOT the on-page copy, headlines, button labels, images, or layout (and not email body copy either — `get_email_step_html` only works for `ai-email` steps; classic emails, shown as type `not-supported`, aren't retrievable). For these, tell the user plainly: they're using an older, non-AI funnel model, so the copy isn't reachable through the API, and you need the live funnel link once to review it in the browser. That framing ("older funnel model, therefore I need the link") helps the user understand it's a data limitation, not laziness.
+- **Classic / manually built funnels**: the MCP only shows step *names*, the *question text* of question steps, and the email-sequence skeleton — NOT the on-page copy, headlines, button labels, images, or layout (and not email body copy either — `get_email_step_html` only works for `ai-email` steps; classic emails, shown as type `not-supported`, aren't retrievable). For these, **always ask for the live funnel URL (the link the ads point to), and ask EARLY** — as soon as you know it's a classic funnel, not after the metrics analysis is done. The walkthrough takes real time, so the sooner you have the link, the sooner copy findings make it into the diagnosis instead of arriving as an afterthought. Tell the user plainly why: they're using an older, non-AI funnel model, so the copy isn't reachable through the API, and you need the live link once to review it in the browser. That framing ("older funnel model, therefore I need the link") helps the user understand it's a data limitation, not laziness. Keep pulling metrics while you wait for the answer; a diagnosis without the copy check is incomplete (see the report section).
 
-**The walkthrough, with as little user effort as possible.** The published funnel slug is NOT exposed by the API, so don't burn time guessing: try `list_domains` → custom domain root plus the `ps_start_slug` from CRM contacts once, and if that 404s, just ask the user for the live funnel URL (the link their ads point to) — one question, nothing else. Never assert the funnel is "down" from a failed slug guess. Once you have the URL, run the whole walkthrough autonomously, no step-by-step confirmations:
+**The walkthrough, with as little user effort as possible.** The published funnel slug is NOT exposed by the API, so don't burn time guessing: try `list_domains` → custom domain root plus the `ps_start_slug` from CRM contacts once, and if that 404s, ask for the live funnel URL as described above — one question, nothing else. Never assert the funnel is "down" from a failed slug guess. Once you have the URL, run the whole walkthrough autonomously, no step-by-step confirmations:
 
 - Click through every page like a visitor, following the main path and glancing at the branches (each retreat/product option, the no-fit path).
 - Prefer `read_page` (accessibility tree) over screenshots to read copy — funnel pages with autoplaying videos routinely hang screenshot/scroll calls, while read_page keeps working.
@@ -96,7 +101,7 @@ If CRM data is available, always run this check, even when a volume leak was alr
 - Which answer combinations produce leads that get qualified or move forward?
 - Which segments convert in the funnel but go nowhere afterwards, and how big is their share?
 
-**Know the ceiling of the CRM status field.** Check which status values actually exist. If the pipeline has no "booked / customer / won" stage (only nurture stages like New, Info Sent, Pending), then you can see *lead progression* but NOT paid outcomes — bookings happen off-platform. Say this explicitly; never imply you can see revenue or closed deals when the statuses only show nurture. Recommend the user add a won-stage or connect their booking/payment system so the "do leads become customers" question becomes answerable.
+**Know the ceiling of the CRM status field.** Check which status values actually exist. If the pipeline has no "booked / customer / won" stage (only nurture stages like New, Info Sent, Pending), then you can see *lead progression* but NOT paid outcomes — bookings happen off-platform. Say this explicitly; never imply you can see revenue or closed deals when the statuses only show nurture. And don't stop at noting the ceiling — first check your own available tools for a connected CRM MCP or connector (HubSpot, Pipedrive, Close, GoHighLevel, Salesforce, ...); deal outcomes usually live there, and matching funnel contacts to CRM deals by email makes the quality check real. If one is connected, offer to run the outcome check through it. If none is, ask the user once whether they can connect theirs, and recommend adding a won-stage or connecting their booking/payment system so the "do leads become customers" question becomes answerable.
 
 **Check qualification hardness.** If almost everyone passes the qualification questions with the same answer (e.g. 90%+ pick "yes, I'm ready"), the questions aren't filtering anyone — they're theatre. Flag it and propose either sharper wording or a real disqualification branch.
 
@@ -137,6 +142,16 @@ Window: [dates] (vs. [comparison dates], if comparing)
    Evidence: [the data that proves it]
    Fix: [specific, shippable suggestion]
 2. ...
+
+### Your fixes, in the order they pay off
+[The improvement suggestions from the ranked leaks, restated as a standalone action table. This is the part the user screenshots and takes to their team, so make it self-explanatory without the rest of the report.]
+
+| # | Fix | Why, from your data | Impact | Effort |
+|:--|:--|:--|:--|:--|
+| **1** | **[Imperative one-liner.]** [One sentence on what to do concretely.] | [The 1-2 numbers that prove it, **bolded**.] | 🔴 Highest<br>**[expected gain, e.g. +500 leads/mo]** | [Minutes / ~1 hour / half a day] |
+| **2** | ... | ... | 🟠 High<br>**...** | ... |
+
+Table rules: same order as the ranked leaks. Impact chips: 🔴 Highest / 🟠 High / 🔵 Medium — severity, not category. The gain line under the chip is the concrete expected win (leads/month, CPL effect, leads at risk); the Effort column is honest wall-clock effort for the user, which is what makes the table actionable. Simple language — "switch on the landing page that already wins", not "reallocate traffic to the superior variant". 3-6 rows; if you found more leaks, the table holds the ones worth acting on this week.
 
 ### Lead quality (if CRM data is available)
 [Which lead segments close, which go nowhere, and the qualification change worth testing.]
