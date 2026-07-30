@@ -7,7 +7,7 @@ Built for [Perspective](https://www.perspective.co), the AI funnel platform.
 ## What it does
 
 1. **Pick the analysis mode** based on real traffic: change-detection (what changed in the last 7 days vs. the 7 before), structural audit (where does this funnel leak by design), or dormant-funnel (traffic has collapsed, so that is the headline). When the prompt leaves the mode ambiguous, it asks — as a simple multiple-choice question, like every question the skill asks that has only a few likely answers.
-2. **Pull the data** per funnel: sessions, leads, conversion rate, step-by-step drop-off, time on page per step, A/B variant split, mobile vs. desktop split, UTM sources, and, when connected, ad spend and CRM outcomes.
+2. **Pull the data** per funnel: sessions, leads, conversion rate, step-by-step drop-off, time on page per step, A/B variant split, mobile vs. desktop split, UTM sources, and, when connected, ad spend, the ad creative behind it, and CRM outcomes.
 3. **Read the actual funnel copy** by walking the live pages in the browser, because the metrics tell you where people drop and only the real pages tell you why. On classic (non-AI) funnels it asks for the live funnel link right away, since the copy isn't reachable through the API there.
 4. **Locate the leak** down a fixed ladder: traffic, ad-to-funnel gap, step, device, then lead quality, stopping at the level that explains most of the loss. Dwell time tells it what kind of leak a step has: a big drop after seconds is a message problem, a big drop after a long read is an offer objection — same drop, opposite fixes.
 5. **Check lead quality, not just volume**: which answer segments actually move forward, where the CRM status ceiling is (and whether a connected CRM can answer what Perspective's statuses can't), whether the qualification questions filter anyone, and how the email sequences nurture or lose leads.
@@ -17,7 +17,7 @@ Built for [Perspective](https://www.perspective.co), the AI funnel platform.
 ## Requirements
 
 - **Perspective MCP** connector, to read the real funnel data. No account yet? See [How to connect the Perspective MCP with Claude](https://intercom.help/perspective-funnels/en/articles/15374243-how-to-connect-perspective-mcp-with-claude) (about 2 minutes).
-- **Ad platform connection** (Meta, Google), optional, to judge ad-to-funnel fit and CPL.
+- **Ad platform connection** (Meta, Google), optional, to judge CPL and to compare the promise in the ad creative against the first screen of the funnel.
 - **CRM data** (the native Perspective CRM or your own CRM connected in Claude), optional, to judge whether leads become customers.
 - **Browser** connector, optional, to read the live funnel copy during the walkthrough.
 
